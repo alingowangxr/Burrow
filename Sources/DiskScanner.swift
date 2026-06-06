@@ -75,14 +75,6 @@ enum DiskScanner {
         return try scanWithMole(path)
     }
 
-    static func shouldSkipInHomeScan(_ path: String, homeDirectory: String = NSHomeDirectory()) -> Bool {
-        let url = URL(fileURLWithPath: path).standardizedFileURL
-        let homeURL = URL(fileURLWithPath: homeDirectory).standardizedFileURL
-        guard url.deletingLastPathComponent().path == homeURL.path else { return false }
-        let protected = Set(["Desktop", "Documents", "Downloads", "Library", "Movies", "Music", "Pictures"])
-        return protected.contains(url.lastPathComponent) || url.lastPathComponent.hasPrefix(".")
-    }
-
     private static func scanWithMole(_ path: String) throws -> DiskScanResult {
         guard MoleCLI.findExecutable() != nil else {
             throw DiskScanError.moNotFound
@@ -108,18 +100,16 @@ enum DiskScanner {
             options: [.skipsPackageDescendants]
         )
 
-        let sizes = try topLevelSizes(urls.filter { !shouldSkipInHomeScan($0.path, homeDirectory: path) }.map(\.path))
         var entries: [DiskScanEntry] = []
         entries.reserveCapacity(urls.count)
         for url in urls {
             let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .contentModificationDateKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey])
             let metadataSize = Int64(values?.totalFileAllocatedSize ?? values?.fileAllocatedSize ?? 0)
-            let size = sizes[url.path] ?? metadataSize
             entries.append(DiskScanEntry(
                 id: url.path,
                 name: url.lastPathComponent,
                 path: url.path,
-                size: size,
+                size: metadataSize,
                 isDir: values?.isDirectory ?? false,
                 lastAccess: values?.contentModificationDate
             ))
@@ -133,18 +123,6 @@ enum DiskScanner {
             entries: entries,
             scannedAt: Date()
         )
-    }
-
-    private static func topLevelSizes(_ paths: [String]) throws -> [String: Int64] {
-        guard !paths.isEmpty else { return [:] }
-        let result = try MoleCLI.run(args: ["-sk"] + paths, executable: "/usr/bin/du", timeout: 20)
-        var sizes: [String: Int64] = [:]
-        for line in result.stdout.split(separator: "\n") {
-            let parts = line.split(separator: "\t", maxSplits: 1)
-            guard parts.count == 2, let kb = Int64(parts[0].trimmingCharacters(in: .whitespaces)) else { continue }
-            sizes[String(parts[1])] = kb * 1024
-        }
-        return sizes
     }
 
     private static func isSamePath(_ lhs: String, _ rhs: String) -> Bool {
