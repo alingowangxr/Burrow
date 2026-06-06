@@ -78,7 +78,9 @@ enum DiskScanner {
     static func shouldSkipInHomeScan(_ path: String, homeDirectory: String = NSHomeDirectory()) -> Bool {
         let url = URL(fileURLWithPath: path).standardizedFileURL
         let homeURL = URL(fileURLWithPath: homeDirectory).standardizedFileURL
-        return url.deletingLastPathComponent().path == homeURL.path && url.lastPathComponent == "Library"
+        guard url.deletingLastPathComponent().path == homeURL.path else { return false }
+        let protected = Set(["Desktop", "Documents", "Downloads", "Library", "Movies", "Music", "Pictures"])
+        return protected.contains(url.lastPathComponent) || url.lastPathComponent.hasPrefix(".")
     }
 
     private static func scanWithMole(_ path: String) throws -> DiskScanResult {
@@ -102,24 +104,24 @@ enum DiskScanner {
         let homeURL = URL(fileURLWithPath: path)
         let urls = try FileManager.default.contentsOfDirectory(
             at: homeURL,
-            includingPropertiesForKeys: [.isDirectoryKey],
+            includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey],
             options: [.skipsPackageDescendants]
-        ).filter { !shouldSkipInHomeScan($0.path, homeDirectory: path) }
+        )
 
-        let sizes = try topLevelSizes(urls.map(\.path))
+        let sizes = try topLevelSizes(urls.filter { !shouldSkipInHomeScan($0.path, homeDirectory: path) }.map(\.path))
         var entries: [DiskScanEntry] = []
         entries.reserveCapacity(urls.count)
         for url in urls {
-            let values = try? url.resourceValues(forKeys: [.isDirectoryKey])
-            let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
-            let size = sizes[url.path] ?? (attrs?[.size] as? NSNumber)?.int64Value ?? 0
+            let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .contentModificationDateKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey])
+            let metadataSize = Int64(values?.totalFileAllocatedSize ?? values?.fileAllocatedSize ?? 0)
+            let size = sizes[url.path] ?? metadataSize
             entries.append(DiskScanEntry(
                 id: url.path,
                 name: url.lastPathComponent,
                 path: url.path,
                 size: size,
                 isDir: values?.isDirectory ?? false,
-                lastAccess: attrs?[.modificationDate] as? Date
+                lastAccess: values?.contentModificationDate
             ))
         }
         entries.sort { $0.size > $1.size }
