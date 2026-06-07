@@ -80,7 +80,7 @@ struct SettingsView: View {
 
                         codeBlock(mcpConfigJSON)
 
-                        infoRow("Tools", "snapshot · history · top_processes · info")
+                        infoRow("Tools", "burrow_snapshot · _history · _top_processes · _info")
 
                         subLabel("Try asking")
                         promptRow("What's my Mac's CPU and memory usage right now?")
@@ -139,7 +139,7 @@ struct SettingsView: View {
     private func promptRow(_ text: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: "arrow.right").font(.system(size: 8, weight: .bold))
-                .foregroundStyle(Brand.green)
+                .foregroundStyle(Brand.green).accessibilityHidden(true)
             Text("\u{201C}\(text)\u{201D}").font(Brand.sans(12)).foregroundStyle(Brand.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -158,6 +158,8 @@ struct SettingsView: View {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(text, forType: .string)
                     copiedConfig = true
+                    // Reset the label so a later copy confirms again.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { copiedConfig = false }
                 } label: {
                     Label(copiedConfig ? "Copied" : "Copy config",
                           systemImage: copiedConfig ? "checkmark" : "doc.on.doc")
