@@ -15,15 +15,55 @@ import AppKit
 struct AnalyzeView: View {
     @StateObject private var model = AnalyzeModel()
     var isActive: Bool = true
+    @State private var showFDAGate = false
 
     var body: some View {
-        HStack(spacing: 0) {
-            sidebar.frame(width: 232)
-            Rectangle().fill(Brand.hairline).frame(width: 1)
-            mainArea
+        Group {
+            if showFDAGate {
+                fdaGate
+            } else {
+                HStack(spacing: 0) {
+                    sidebar.frame(width: 232)
+                    Rectangle().fill(Brand.hairline).frame(width: 1)
+                    mainArea
+                }
+            }
         }
-        .onAppear { if isActive { model.startIfNeeded() } }
-        .onChange(of: isActive) { _, now in if now { model.startIfNeeded() } }
+        .onAppear { evaluateStart() }
+        .onChange(of: isActive) { _, now in if now { evaluateStart() } }
+    }
+
+    /// Analyze auto-scans the home folder on first open — exactly when
+    /// the macOS "access data from other apps" flood hits (issue #3). If
+    /// we lack Full Disk Access and the user hasn't dismissed the notice,
+    /// gate the scan behind it rather than walking protected dirs
+    /// unannounced.
+    private func evaluateStart() {
+        guard isActive, !model.started else { return }
+        if Privacy.shouldOfferFullDiskAccessNow() {
+            showFDAGate = true
+        } else {
+            model.startIfNeeded()
+        }
+    }
+
+    private var fdaGate: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            FullDiskAccessNotice(
+                accent: Tool.analyze.accent,
+                continueLabel: "Scan anyway",
+                onContinue: { showFDAGate = false; model.startIfNeeded() },
+                onDontAskAgain: {
+                    Store.fullDiskAccessNoticeDismissed = true
+                    showFDAGate = false
+                    model.startIfNeeded()
+                })
+            .frame(maxWidth: 460)
+            Spacer(); Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 24)
     }
 
     // MARK: Sidebar
@@ -213,7 +253,7 @@ final class AnalyzeModel: ObservableObject {
     @Published var loading = false
     @Published var error: String?
     private var total: Int64 = 0
-    private var started = false
+    private(set) var started = false
     private let opId = UUID()
 
     var summaryLine: String {

@@ -79,6 +79,17 @@ enum Store {
         set { d.set(newValue, forKey: "query_server_enabled") }
     }
 
+    // MARK: - Privacy
+
+    /// Whether the user has dismissed the Full Disk Access notice that
+    /// Burrow shows before scans which walk TCC-protected directories
+    /// (issue #3). Defaults to false so first-run users see it once;
+    /// sticks once dismissed so we never nag.
+    static var fullDiskAccessNoticeDismissed: Bool {
+        get { d.object(forKey: "fda_notice_dismissed") as? Bool ?? false }
+        set { d.set(newValue, forKey: "fda_notice_dismissed") }
+    }
+
     // MARK: - History view
 
     /// Last-selected History view range, in minutes. Persisting it

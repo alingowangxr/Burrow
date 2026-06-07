@@ -15,15 +15,31 @@ import AppKit
 struct CleanView: View {
     @StateObject private var runner = CommandRunner()
     @State private var mode: Mode = .dry
+    @State private var showFDANotice = false
 
     enum Mode { case dry, real }
 
     var body: some View {
         if runner.phase == .idle {
-            ToolHero(tool: .clean, title: "Clean", subtitle: Tool.clean.tagline) {
-                PillButton(title: "Clean Now") { confirmReal() }
-                PillButton(title: "Preview", filled: false) { startDry() }
+            ZStack(alignment: .top) {
+                ToolHero(tool: .clean, title: "Clean", subtitle: Tool.clean.tagline) {
+                    PillButton(title: "Clean Now") { confirmReal() }
+                    PillButton(title: "Preview", filled: false) { startDry() }
+                }
+                if showFDANotice {
+                    FullDiskAccessNotice(
+                        accent: Tool.clean.accent,
+                        onContinue: { showFDANotice = false },
+                        onDontAskAgain: {
+                            Store.fullDiskAccessNoticeDismissed = true
+                            showFDANotice = false
+                        })
+                    .frame(maxWidth: 520)
+                    .padding(.horizontal, 18).padding(.top, 10)
+                    .transition(.opacity)
+                }
             }
+            .onAppear { showFDANotice = Privacy.shouldOfferFullDiskAccessNow() }
         } else {
             let report = parseTaskReport(runner.lines)
             VStack(spacing: 0) {
