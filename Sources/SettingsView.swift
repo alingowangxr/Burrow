@@ -59,8 +59,11 @@ struct SettingsView: View {
                     }
 
                     section("Menu bar", "menubar.rectangle") {
-                        toggleRow("Show menu bar icon", isOn: $showMenuBarIcon) { Store.showMenuBarIcon = $0 }
-                        footnote("When off, Burrow shows a Dock icon instead so it stays reachable — the window opens on launch and a Dock click reopens it. Takes effect after a relaunch.")
+                        toggleRow("Show menu bar icon", isOn: $showMenuBarIcon) { on in
+                            Store.showMenuBarIcon = on
+                            AppDelegate.shared?.applyMenuBarVisibility(on)
+                        }
+                        footnote("Applies immediately. When off, Burrow shows a Dock icon instead so it stays reachable — a Dock click reopens the window.")
                     }
 
                     section("MCP query server", "antenna.radiowaves.left.and.right") {

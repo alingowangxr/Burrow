@@ -191,6 +191,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return true
     }
 
+    // MARK: - Menu-bar visibility (live)
+
+    /// Apply the "Show menu bar icon" setting immediately, without a relaunch.
+    /// Installs/removes the status item, and when hiding it keeps a Dock
+    /// presence + an open window so the app never becomes unreachable.
+    func applyMenuBarVisibility(_ show: Bool) {
+        guard let db = db, let sampler = sampler else { return }
+        if show {
+            if statusBar == nil {
+                statusBar = StatusBarController(db: db, sampler: sampler, delegate: self)
+            }
+        } else {
+            statusBar = nil   // StatusBarController.deinit removes the item
+            if #available(macOS 14, *) {
+                NSApp.setActivationPolicy(.regular)
+                if mainWC?.window == nil { openMainWindow(initial: .tool(.status)) }
+            }
+        }
+    }
+
     // MARK: - Main menu
 
     /// Minimal AppKit main menu — shows when the app is active (.regular,
