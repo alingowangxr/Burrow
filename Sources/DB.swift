@@ -103,7 +103,7 @@ final class DB {
         let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
         if sqlite3_open_v2(url.path, &h, flags, nil) != SQLITE_OK {
             let msg = h.map { String(cString: sqlite3_errmsg($0)) } ?? "unknown"
-            sqlite3_close(h)
+            if h != nil { sqlite3_close(h) }   // close only a real handle
             self.handle = nil
             throw DBError.open(msg)
         }
@@ -147,19 +147,22 @@ final class DB {
         }
     }
 
-    /// Restore user read/write permission on our own db file, if present.
-    /// Best-effort: if we don't own it (or it's immutable) this no-ops and
-    /// recovery falls through to quarantine.
+    /// Ensure the owner can read+write our own db file, preserving the rest
+    /// of its mode (don't broaden group/other access). Best-effort: if we
+    /// don't own it (or it's immutable) this no-ops and recovery falls
+    /// through to quarantine.
     private static func restoreWritePermission(_ url: URL) {
-        guard FileManager.default.fileExists(atPath: url.path) else { return }
-        try? FileManager.default.setAttributes([.posixPermissions: 0o644],
-                                               ofItemAtPath: url.path)
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: url.path) else { return }
+        let current = ((try? fm.attributesOfItem(atPath: url.path))?[.posixPermissions] as? NSNumber)?.intValue ?? 0o600
+        try? fm.setAttributes([.posixPermissions: current | 0o600], ofItemAtPath: url.path)
     }
 
-    /// Move the unusable db (and its sidecars) aside so a fresh one can be
-    /// created in its place. Picks the first free `<name>.corrupt[-n]` so
-    /// an earlier quarantine isn't clobbered. Throws if the move fails
-    /// (e.g. the directory itself is read-only).
+    /// Move the unusable db **and its sidecars** aside so a fresh one can
+    /// be created in its place. The sidecars travel with the db (forensics)
+    /// and none are left at the original path to poison the new one. Picks
+    /// the first free `<name>.corrupt[-n]` so an earlier quarantine isn't
+    /// clobbered. Throws if the move fails (e.g. a read-only directory).
     private static func quarantine(_ url: URL) throws {
         let fm = FileManager.default
         guard fm.fileExists(atPath: url.path) else { removeSidecars(url); return }
@@ -167,7 +170,10 @@ final class DB {
         var n = 1
         while fm.fileExists(atPath: dest) { dest = url.path + ".corrupt-\(n)"; n += 1 }
         try fm.moveItem(atPath: url.path, toPath: dest)
-        removeSidecars(url)
+        for suffix in ["-wal", "-shm"] {
+            let side = url.path + suffix
+            if fm.fileExists(atPath: side) { try? fm.moveItem(atPath: side, toPath: dest + suffix) }
+        }
     }
 
     deinit {
