@@ -23,6 +23,7 @@ final class StoreTests: XCTestCase {
             "query_server_port",
             "query_server_enabled",
             "last_history_range_minutes",
+            "fda_notice_dismissed",
         ] {
             UserDefaults.standard.removeObject(forKey: k)
         }
@@ -72,6 +73,15 @@ final class StoreTests: XCTestCase {
 
     func testLastHistoryRangeMinutes_defaultsToOneHour() {
         XCTAssertEqual(Store.lastHistoryRangeMinutes, 60)
+    }
+
+    // The Full Disk Access notice (issue #3) must default to "not
+    // dismissed" so first-run users see it, and stick once dismissed so
+    // we don't nag.
+    func testFullDiskAccessNoticeDismissed_defaultsFalseAndPersists() {
+        XCTAssertFalse(Store.fullDiskAccessNoticeDismissed)
+        Store.fullDiskAccessNoticeDismissed = true
+        XCTAssertTrue(Store.fullDiskAccessNoticeDismissed)
     }
 
     func testRoundtripBoolAndInt() {
