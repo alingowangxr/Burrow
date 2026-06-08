@@ -766,12 +766,8 @@ struct ToolCatalog {
     }
 
     /// Strip ANSI/VT100 escape sequences so mo's TUI coloring doesn't leak
-    /// into the JSON text payload.
-    static func stripANSI(_ s: String) -> String {
-        guard let re = try? NSRegularExpression(pattern: "\\x1B\\[[0-9;?]*[ -/]*[@-~]") else { return s }
-        let range = NSRange(s.startIndex..., in: s)
-        return re.stringByReplacingMatches(in: s, range: range, withTemplate: "")
-    }
+    /// into the JSON text payload. Delegates to the one `Ansi.strip`.
+    static func stripANSI(_ s: String) -> String { Ansi.strip(s) }
 
     private static func jsonString(_ obj: [String: Any]) -> String {
         if let d = try? JSONSerialization.data(withJSONObject: obj, options: [.withoutEscapingSlashes]),

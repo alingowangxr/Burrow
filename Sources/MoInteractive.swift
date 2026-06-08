@@ -160,25 +160,8 @@ enum MoTUI {
     }
 
     /// Strip CSI escape sequences so the TUI's redraw control codes don't
-    /// pollute parsing. (Mirror of CommandRunner.stripAnsi, kept local so
-    /// this file is self-contained + testable.)
-    static func stripANSI(_ s: String) -> String {
-        guard s.contains("\u{1B}") else { return s }
-        var out = String(); out.reserveCapacity(s.count)
-        var i = s.startIndex
-        while i < s.endIndex {
-            if s[i] == "\u{1B}", s.index(after: i) < s.endIndex, s[s.index(after: i)] == "[" {
-                var j = s.index(i, offsetBy: 2)
-                while j < s.endIndex {
-                    if let a = s[j].asciiValue, a >= 0x40, a <= 0x7E { j = s.index(after: j); break }
-                    j = s.index(after: j)
-                }
-                i = j; continue
-            }
-            out.append(s[i]); i = s.index(after: i)
-        }
-        return out
-    }
+    /// pollute parsing. Delegates to the one `Ansi.strip`.
+    static func stripANSI(_ s: String) -> String { Ansi.strip(s) }
 }
 
 // MARK: - Pseudo-terminal task
