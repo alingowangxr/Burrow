@@ -23,35 +23,35 @@ and an **MCP server** so any AI agent (Claude Code, Cursor, Codex…) can ask
 
 <table>
   <tr>
-    <td><img alt="Status — live CPU, memory, GPU, disk, network, and battery with sparklines" src="https://github.com/user-attachments/assets/c9dcc792-7855-42bc-8799-fdd5b5c2d6c9"></td>
-    <td><img alt="Analyze — squarified treemap of your whole disk" src="https://github.com/user-attachments/assets/86d91205-0656-43a8-9c5d-5b966e05ea35"></td>
+    <td><img alt="Status — live CPU, memory, GPU, disk, network, and battery with sparklines" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-status.png"></td>
+    <td><img alt="Analyze — squarified treemap of your whole disk" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-analyze.png"></td>
   </tr>
   <tr>
-    <td><img alt="Clean — categorized cache, log, and leftover removal" src="https://github.com/user-attachments/assets/b773858e-98b8-4465-8916-914699d2b3e8"></td>
-    <td><img alt="Purge — reclaim space from dev projects (node_modules, build dirs, target/…)" src="https://github.com/user-attachments/assets/7b956080-31b6-487f-b886-bf362dfe77b8"></td>
+    <td><img alt="Clean — categorized cache, log, and leftover removal" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-clean.png"></td>
+    <td><img alt="Purge — reclaim space from dev projects (node_modules, build dirs, target/…)" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-purge2.png"></td>
   </tr>
   <tr>
-    <td><img alt="Installers — find and remove leftover .dmg/.pkg files in bulk" src="https://github.com/user-attachments/assets/d8bd92dc-3f7e-4bcc-94bd-ee08660208e5"></td>
-    <td><img alt="Optimize — one-tap safe maintenance" src="https://github.com/user-attachments/assets/9c45a85e-3f1c-4fe7-96cc-db08605cb663"></td>
+    <td><img alt="Installers — find and remove leftover .dmg/.pkg files in bulk" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-installers.png"></td>
+    <td><img alt="Optimize — one-tap safe maintenance" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-optimize.png"></td>
   </tr>
   <tr>
     <td><img alt="Software — installed apps with search, sort, and multi-select uninstall" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-apps.png"></td>
-    <td><img alt="History — long-range charts over a local SQLite metric history" src="https://github.com/user-attachments/assets/38e2de8e-e654-4eab-a20a-f4521c921f31"></td>
+    <td><img alt="History — long-range charts over a local SQLite metric history" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-history.png"></td>
   </tr>
 </table>
 
 <p align="center">
-  <img alt="Activity — a running log of cleans, optimizes, and scans, plus anything in flight" src="https://github.com/user-attachments/assets/766f5904-ebf1-4c16-9709-afc587575f1c">
+  <img alt="Activity — a running log of cleans, optimizes, and scans, plus anything in flight" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-activity.png">
 </p>
 
 <p align="center">
   <em>Explain with AI — point an MCP-capable agent (Claude Code, or a local model via LM Studio) at Burrow and ask your Mac in plain language.</em>
   <br>
-  <img alt="Explain with AI — burrow_snapshot analyzed in plain language" src="https://github.com/user-attachments/assets/a4255b75-7d93-4412-bc22-ba3c996b5b3b">
+  <img alt="Explain with AI — burrow_snapshot analyzed in plain language" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-ai.png">
 </p>
 
 <p align="center">
-  <img width="320" alt="Menu-bar HUD — health, metric tiles, top processes, and live job status" src="https://github.com/user-attachments/assets/0e7d0684-88eb-4df4-998e-d6d1664e3eb3">
+  <img width="320" alt="Menu-bar HUD — health, metric tiles, top processes, and live job status" src="https://raw.githubusercontent.com/caezium/Burrow/main/docs/assets/shot-menubar.png">
 </p>
 
 ## The tools
