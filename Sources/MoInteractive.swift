@@ -184,18 +184,24 @@ enum MoTUI {
 // MARK: - Pseudo-terminal task
 
 /// A child process attached to a pseudo-terminal, so a TUI program (Mole's
-/// selection screen) believes it's interactive. Read/write the screen via
-/// `master`. The only impure seam — kept tiny.
-final class PTYTask {
+/// selection screen) believes it's interactive. The production `PTYPort`: it
+/// owns its read loop and delivers output/exit on the main thread so the host
+/// reducer stays single-threaded. The only impure seam — kept tiny.
+final class PTYTask: PTYPort {
     private let proc = Process()
-    private(set) var master: FileHandle?
+    private var master: FileHandle?
 
-    var isRunning: Bool { proc.isRunning }
-    var terminationStatus: Int32 { proc.terminationStatus }
-    var onExit: (@Sendable () -> Void)?
+    var onOutput: ((String) -> Void)?
+    var onExit: ((Int32) -> Void)?
 
-    func launch(_ executable: String, _ args: [String], env extra: [String: String] = [:],
-                cols: UInt16 = 120, rows: UInt16 = 60) throws {
+    private let cols: UInt16
+    private let rows: UInt16
+    /// `rows` controls how many list rows Mole's TUI renders in one frame (it
+    /// caps the viewport ≈50); 60 covers the common case, with scroll-capture
+    /// handling longer lists.
+    init(cols: UInt16 = 120, rows: UInt16 = 60) { self.cols = cols; self.rows = rows }
+
+    func launch(_ executable: String, _ args: [String]) throws {
         var amaster: Int32 = 0
         var aslave: Int32 = 0
         var ws = winsize(ws_row: rows, ws_col: cols, ws_xpixel: 0, ws_ypixel: 0)
@@ -211,10 +217,18 @@ final class PTYTask {
         proc.standardError = slave
         var env = Foundation.ProcessInfo.processInfo.environment
         env["TERM"] = "xterm-256color"
-        for (k, v) in extra { env[k] = v }
         proc.environment = env
-        proc.terminationHandler = { [weak self] _ in self?.onExit?() }
-        master = FileHandle(fileDescriptor: amaster, closeOnDealloc: true)
+        proc.terminationHandler = { [weak self] p in
+            let code = p.terminationStatus
+            DispatchQueue.main.async { self?.onExit?(code) }
+        }
+        let m = FileHandle(fileDescriptor: amaster, closeOnDealloc: true)
+        m.readabilityHandler = { [weak self] h in
+            let d = h.availableData
+            guard !d.isEmpty, let s = String(data: d, encoding: .utf8) else { return }
+            DispatchQueue.main.async { self?.onOutput?(s) }
+        }
+        master = m
         // Close the parent's slave fd whether or not the launch succeeds — on a
         // throw the child never starts, so nothing else would ever close it.
         do { try proc.run() }
@@ -223,5 +237,8 @@ final class PTYTask {
     }
 
     func send(_ bytes: [UInt8]) { try? master?.write(contentsOf: Data(bytes)) }
-    func terminate() { if proc.isRunning { proc.terminate() } }
+    func terminate() {
+        master?.readabilityHandler = nil
+        if proc.isRunning { proc.terminate() }
+    }
 }
