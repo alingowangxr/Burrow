@@ -1,34 +1,21 @@
-# Burrow 0.6.0
+# Burrow 0.6.5
 
-A fix-and-polish release: the Installers and Uninstall flows now actually
-complete, the system trackers show real data, and there's more to track.
+A reliability release. The Installers and Purge selection flows no longer hang,
+and the code that drives the Mole CLI is now extensively tested.
 
-## Cleanup flows that now work
-- **Installers** — the removal step used to time out at the confirm screen
-  ("didn't reach its confirm screen in time"). Mole renames its confirm verb
-  per tool ("Delete N installers" vs "Remove N artifact"); Burrow now reads
-  either, so installer cleanup completes.
-- **Uninstall** — selecting an app and pressing Uninstall did nothing: Mole's
-  `uninstall` waits for a `[y/N]` confirmation that a windowed app couldn't
-  answer, so it hung. Burrow now drives the full `mo uninstall` flow to
-  completion (still gated behind its own confirm sheet; files go to the Trash).
-- **Purge → Show all** — Mole only renders its ~50 biggest finds at a time.
-  A new **Show all N** button pulls in the complete list so you can pick from
-  everything it found, not just the largest, with the same verify-before-delete
-  safety.
+## Fixes
+- **No more "Scanning…" hang.** Two cases that could freeze the Installers/Purge
+  tools are fixed: when Mole finds nothing and exits before showing a list, and
+  when you scan a second time. Both now resolve cleanly.
 
-## Trackers that actually track
-- **Disk I/O** and **GPU usage** are now read natively (Mole reports them as
-  0 / unavailable on Apple Silicon), so the charts and tiles show real numbers.
-- **Thermal** now plots a temperature instead of "No samples".
-- New **Battery**, **GPU**, and **Fans** history charts.
-- **Top Processes** can rank by **CPU or RAM**.
-- Live metrics sample faster while you're watching them, so short network and
-  disk spikes land on the chart instead of being missed.
-
-## Other
-- Settings (menu-bar toggle, history retention, …) are flushed immediately so
-  a change made right before an update isn't lost.
+## Under the hood
+- The interactive selection flow (installer/purge) is now a small, pure state
+  machine driven entirely by tests, so the safety-critical "remove exactly what
+  you picked — or nothing" logic is verified in CI rather than by hand.
+- Reading and parsing Mole's output is consolidated into a few tested modules
+  (one ANSI cleaner, one typed client, one snapshot store). No behavior change —
+  the app looks and works the same; it's just far harder to regress.
+- Test suite grew from 90 to 124.
 
 ## Install
 ```
