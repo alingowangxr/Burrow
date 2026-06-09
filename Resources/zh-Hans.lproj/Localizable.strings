@@ -288,5 +288,31 @@
 "Minimize" = "最小化";
 "Close" = "关闭";
 "Mole CLI not found" = "未找到 Mole CLI";
+
+/* Home (Overview / History / Activity) + Explain */
+"Overview" = "概览";
+"Explain" = "解读";
+
+/* Language switch */
+"Language" = "语言";
+"App language" = "应用语言";
+"System" = "跟随系统";
+"Relaunch to change language?" = "重启以切换语言？";
+"Burrow needs to relaunch to apply the new language." = "Burrow 需要重新启动以应用新语言。";
+"Relaunch Now" = "立即重启";
+"Later" = "稍后";
+"Burrow ships English and 中文. A language change takes effect after a relaunch." = "Burrow 提供英文和中文。语言更改将在重新启动后生效。";
+
+/* Analyze — move to Trash */
+"Move “%@” to Trash?" = "将“%@”移到废纸篓？";
+"This moves %@ (%@) to the Trash, where you can restore it." = "这会将 %@（%@）移到废纸篓，可在那里恢复。";
+"this folder" = "此文件夹";
+"this file" = "此文件";
+"Couldn't move to Trash" = "无法移到废纸篓";
+
+/* Settings sections */
+"Mole engine" = "Mole 引擎";
+"Menu bar" = "菜单栏";
+"Show menu bar icon" = "显示菜单栏图标";
 "Burrow uses the Mole CLI (`mo`) for system metrics and cleanup. Install it with:\n\n    brew install mole\n\nThen relaunch Burrow." = "Burrow 使用 Mole CLI（`mo`）获取系统指标并执行清理。请安装：\n\n    brew install mole\n\n然后重新启动 Burrow。";
 "Quit" = "退出";
